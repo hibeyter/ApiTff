@@ -5,19 +5,21 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/beyter", controler.deneme)
+app.get("/", controler.ligler)
 
-app.get('/:hafta', controler.getPuanTablosu);
+app.get('/lig=:lig', controler.lig)
 
-app.get('/:hafta/:id', controler.getPuanTakim);
+app.get('/lig=:lig/hafta=:hafta', controler.getPuanTablosu);
+
+app.get('/lig=:lig/hafta=:hafta/sira=:id', controler.getPuanTakim);
+
+app.get('/lig=:lig/hafta=:hafta/mac', controler.haftaMaclari)
 
 
-
-// Listen to the App Engine-specified port, or 8080 otherwise
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}...`);
 });
-// [END app]
+
 
 module.exports = app;
