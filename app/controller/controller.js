@@ -4,8 +4,14 @@ const windows1254 = require('windows-1254');
 const veriables = require('../utils/variables')
 
 var url = function(lig, hafta = '') {
-    return veriables.ligler[lig].link + '&hafta=' + hafta
+    return veriables.ligler.find(e => e.r === lig).link + '&hafta=' + hafta
 }
+
+var kontrol = function(lig) {
+    if (veriables.ligler.find(e => e.r === lig)) return true
+    return false
+}
+
 var puanTablosu = function(lig, resources) {
     const $ = cheerio.load(windows1254.decode(resources.data.toString('binary')));
     var data = [];
@@ -58,37 +64,52 @@ var puanTablosu = function(lig, resources) {
     return data
 }
 exports.getPuanTablosu = async function(req, res) {
-    axios.request({
-        method: 'GET',
-        url: url(req.params.lig, req.params.hafta),
-        responseType: 'arraybuffer'
-    }).then(resources => {
-        data = puanTablosu(req.params.lig, resources)
-        res.set({ 'content-type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify(data));
-    })
+    if (kontrol(req.params.lig)) {
+        axios.request({
+            method: 'GET',
+            url: url(req.params.lig, req.params.hafta),
+            responseType: 'arraybuffer'
+        }).then(resources => {
+            data = puanTablosu(req.params.lig, resources)
+            res.set({ 'content-type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify(data));
+        })
+    } else {
+        res.status(400).json({ message: 'Lig not found' })
+    }
+
+
 };
 
 exports.getPuanTakim = async function(req, res) {
-    axios({
-        method: 'GET',
-        url: url(req.params.lig, req.params.hafta),
-        responseType: 'arraybuffer'
-    }).then(resources => {
-        data = puanTablosu(req.params.lig, resources)[req.params.id - 1]
-        res.set({ 'content-type': 'application/json; charset=win-1254' });
-        res.end(JSON.stringify(data));
-    })
+
+    if (kontrol(req.params.lig)) {
+        axios({
+            method: 'GET',
+            url: url(req.params.lig, req.params.hafta),
+            responseType: 'arraybuffer'
+        }).then(resources => {
+            data = puanTablosu(req.params.lig, resources)[req.params.id - 1]
+            res.set({ 'content-type': 'application/json; charset=win-1254' });
+            res.end(JSON.stringify(data));
+        })
+    } else {
+        res.status(400).json({ message: 'Lig not found' })
+    }
+
+
 };
 
 
 exports.ligler = async function(req, res) {
+
     res.set({ 'content-type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(veriables.ligler))
 };
 
 exports.lig = async function(req, res) {
-    if (veriables.ligler[req.params.lig] != null) {
+
+    if (kontrol(req.params.lig)) {
         axios.request({
             method: 'GET',
             url: url(req.params.lig),
@@ -98,60 +119,58 @@ exports.lig = async function(req, res) {
             res.set({ 'content-type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify(data));
         })
-
-        /*res.set({ 'content-type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify(veriables.ligler[req.params.lig]))*/
-    } else res.end("lig not found")
-
+    } else res.status(400).json({ message: 'Lig not found' })
 };
 
 exports.haftaMaclari = async function(req, res) {
-    axios.request({
-        method: 'GET',
-        url: url(req.params.lig, req.params.hafta),
-        responseType: 'arraybuffer'
-    }).then(resources => {
-        const $ = cheerio.load(windows1254.decode(resources.data.toString('binary')));
-        var data = []
-        $(veriables.ligElementId[req.params.lig].table)
-            .children("tbody").children("tr").each((index, element) => {
-                if (index != 0) {
-                    var mac = {}
-                    $(element).children('td').children('table').children('tbody')
-                        .children('tr').children('td').each((i, tdElement) => {
-                            switch (i) {
-                                case 0:
-                                    {
-                                        var mDate = '';
-                                        $(tdElement).children('b').children('span').each((i, spanElement) => {
-                                            mDate += $(spanElement).text() + " "
-                                        })
-                                        mac.T = mDate.trim()
-                                    }
-                                    break;
-                                case 2:
-                                    mac.E = $(tdElement).children('a').children('span').text();
-                                    break;
-                                case 3:
-                                    {
-                                        $(tdElement).children('b').children('a').children('span').each((i, spanElement) => {
-                                            if (i == 0) mac.ES = parseInt($(spanElement).text())
-                                            else mac.KS = parseInt($(spanElement).text())
-                                        })
-                                    }
-                                    break;
-                                case 4:
-                                    mac.K = $(tdElement).children('a').children('span').text();
-                                    break;
-                            }
-                        })
-                    if (Object.keys(mac).length) {
-                        data[index - 1] = mac
+    if (kontrol(req.params.lig)) {
+        axios.request({
+            method: 'GET',
+            url: url(req.params.lig, req.params.hafta),
+            responseType: 'arraybuffer'
+        }).then(resources => {
+            const $ = cheerio.load(windows1254.decode(resources.data.toString('binary')));
+            var data = []
+            $(veriables.ligElementId[req.params.lig].table)
+                .children("tbody").children("tr").each((index, element) => {
+                    if (index != 0) {
+                        var mac = {}
+                        $(element).children('td').children('table').children('tbody')
+                            .children('tr').children('td').each((i, tdElement) => {
+                                switch (i) {
+                                    case 0:
+                                        {
+                                            var mDate = '';
+                                            $(tdElement).children('b').children('span').each((i, spanElement) => {
+                                                mDate += $(spanElement).text() + " "
+                                            })
+                                            mac.T = mDate.trim()
+                                        }
+                                        break;
+                                    case 2:
+                                        mac.E = $(tdElement).children('a').children('span').text();
+                                        break;
+                                    case 3:
+                                        {
+                                            $(tdElement).children('b').children('a').children('span').each((i, spanElement) => {
+                                                if (i == 0) mac.ES = parseInt($(spanElement).text())
+                                                else mac.KS = parseInt($(spanElement).text())
+                                            })
+                                        }
+                                        break;
+                                    case 4:
+                                        mac.K = $(tdElement).children('a').children('span').text();
+                                        break;
+                                }
+                            })
+                        if (Object.keys(mac).length) {
+                            data[index - 1] = mac
+                        }
                     }
-                }
-            })
-        res.set({ 'content-type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify(data))
-    })
+                })
+            res.set({ 'content-type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify(data))
+        })
+    } else res.end("Lig not found")
 
 }
