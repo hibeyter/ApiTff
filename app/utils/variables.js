@@ -19,20 +19,17 @@ module.exports.ligler = [{
         link: defaultLigLink + 1001,
         r: 'kadinlar2lig',
     },
-
 ]
-
-//div Puan tablosu
-//table hafta macları
-
 module.exports.ligElementId = {
     superlig: {
         div: 'div[id=ctl00_MPane_m_198_1890_ctnr_m_198_1890_Panel1]',
         table: 'table[id=ctl00_MPane_m_198_935_ctnr_m_198_935_dtlHaftaninMaclari]',
+        allTable: 'div[id=ctl00_MPane_m_198_3005_ctnr_m_198_3005_Panel1]',
     },
     tff1lig: {
         div: 'div[id=ctl00_MPane_m_142_6657_ctnr_m_142_6657_Panel1]',
         table: 'table[id=ctl00_MPane_m_142_6656_ctnr_m_142_6656_dtlHaftaninMaclari]',
+        allTable: 'div[id=ctl00_MPane_m_142_8625_ctnr_m_142_8625_Panel1]',
     },
     kadinlar1lig: {
         div: 'div[id=ctl00_MPane_m_1000_9271_ctnr_m_1000_9271_Panel1]',
